@@ -1,5 +1,5 @@
 # Dependencies
-/node_modules
+node_modules
 
 # Production
 /build
@@ -19,6 +19,18 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# wrangler files
-.wrangler
-.dev.vars*
+/tmp
+
+.bin/
+.idea/
+
+docs/build
+test-results/
+playwright-report/
+
+.vercel/
+
+.vercel
+.bin/
+
+screenshots
