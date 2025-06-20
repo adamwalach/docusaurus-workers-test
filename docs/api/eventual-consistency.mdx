@@ -1,0 +1,52 @@
+---
+id: eventual-consistency
+title: Eventual consistency
+sidebar_label: Eventual consistency
+---
+
+Ory Network is a global, planet-spanning system with data distributed across numerous continents. To enhance query performance,
+Ory's APIs offer robust consistency controls. This article will delve into the consistency levels provided by Ory's APIs and how
+they can be utilized to balance data freshness and latency.
+
+## Consistency Levels
+
+Ory Network offers two distinct consistency levels: `strong` and `eventual`.
+
+### Strong Consistency (slow)
+
+**Definition**: The `strong` consistency level ensures that you receive the freshest data available.
+
+**Characteristics**:
+
+- **Data Freshness**: Full consistency guarantees that you receive the latest updates to the data.
+- **Latency**: However, this level introduces higher latency to your queries, as the system takes the necessary steps to
+  synchronize and deliver the most recent information.
+- **Use Cases**: Use `strong` consistency when access to the most up-to-date data is critical, even if it means longer response
+  times.
+
+### Eventual Consistency (fast)
+
+**Definition**: The `eventual` consistency level delivers data as fast as possible, typically within 4.8 seconds.
+
+**Characteristics**:
+
+- **Data Freshness**: While `eventual` consistency offers faster query response times, the data can be stale, meaning it does not
+  reflect the latest updates.
+- **Latency**: This level minimizes latency, enabling rapid access to data.
+- **Use Cases**: Choose `eventual` consistency when immediate data access is crucial, and you can tolerate data that is not
+  current.
+
+## Default Consistency
+
+The default consistency guarantee can be changed using the Ory CLI with:
+
+```shell
+ory patch project --replace '/previews/default_read_consistency_level="eventual"'
+```
+
+The default is `strong`.
+
+## Identity List API Support
+
+The [Identity List API](../reference/api#tag/identity/operation/listIdentities) in Ory Network supports consistency controls. This
+means you can choose the consistency level when using the Identity List API.

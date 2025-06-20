@@ -1,0 +1,38 @@
+---
+id: revoke-consent
+sidebar_label: Revoke consent
+title: Revoke user consent
+---
+
+You can revoke user consent on a per-application basis, or for all applications to which the user granted their consent.
+
+:::danger
+
+Revoking a user's consent automatically revokes all related access and refresh tokens. Don't use this method to invalidate user
+sessions.
+
+If you are using access and refresh tokens as user sessions instead of browser cookies, you should revise your approach and usage
+of OAuth2.
+
+:::
+
+## Per-application basis
+
+Use the Ory SDK to revoke user consent for a specific OAuth2 client:
+
+```mdx-code-block
+import revokeClient from '!!raw-loader!../../code-examples/sdk/typescript/src/oauth2/consent-revoke-client.ts'
+import CodeBlock from '@theme/CodeBlock'
+
+<CodeBlock language="js">{revokeClient}</CodeBlock>
+```
+
+## All applications
+
+Use the Ory SDK to revoke user consent for all OAuth2 clients:
+
+```mdx-code-block
+import revokeAll from '!!raw-loader!../../code-examples/sdk/typescript/src/oauth2/consent-revoke-all.ts'
+
+<CodeBlock language="js">{revokeAll}</CodeBlock>
+```

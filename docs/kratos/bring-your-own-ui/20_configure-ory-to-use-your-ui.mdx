@@ -1,0 +1,102 @@
+---
+id: configure-ory-to-use-your-ui
+title: Configure Ory to use your UI
+---
+
+To define the paths where Ory calls your custom UI, go to <ConsoleLink route="project.ui" />. This view allows you to define the
+URLs of UI views for every self-service flow. To point to the desired UI, you can use relative or absolute paths.
+
+:::info
+
+Unless you set a custom UI base URL, relative links always use your SDK Configuration URL as the base. To get your project's SDK
+Configuration URL, go to <ConsoleLink route="project.settings" />, and copy the URL from the **API Endpoints** field.
+
+:::
+
+By default, self-service flows use [Ory Account Experience](./01_overview.mdx#why-should-i-use-ory-account-experience), which is a
+part of every Ory Network project. In the default setup, the system uses relative paths to point to the appropriate UI for every
+screen. The relative links that point to the Ory Account Experience follow the `/ui/{flow_name}` format.
+
+## Custom domain setup
+
+All paid Ory Network plans allow to add a custom domain to your project. After adding a custom domain, you can also set up a base
+URL of all custom UI views. This is a great way to make Ory work with your existing deployment without adjustments, as you can use
+the combination of the base URL and relative URLs to point Ory to UI screens for operations such as login or registration you are
+already hosting.
+
+To set the base URL of custom UI and define the paths for UI views, go to <ConsoleLink route="project.ui" />.
+
+:::caution
+
+When you define a custom UI base URL, you lose access to the Ory Account Experience. The custom UI base url takes precedence over
+SDK Configuration URL.
+
+:::
+
+You can toggle the "Enable the Account Experience welcome page" setting to hide the default "welcome" screen that isn't intended
+for end-users.
+
+## Multiple custom domains
+
+With the _Multibrand_ feature enabled for your workspace, you can add multiple custom domains to each Ory Network project. You can
+add a different custom UI base URL of each of the custom domains registered in the project. This allows for a high degree of
+flexibility, where each of the domains serves its own set of UI views that have a common path makeup but different base URL.
+
+Are you interested in the Multibrand feature ? [Ory is here to help!](https://www.ory.sh/contact)
+
+In practical terms, this means that you can serve different UI views to customers that interact with different parts of your
+business, while still allowing them to conveniently use one account that's managed by your Ory Network project.
+
+For example, the ACME Car Parts company has three online storefronts for three different types of automotive products:
+
+- mufflers.com
+- carseats.com
+- wipers.com
+
+Since all the storefronts are managed and developed by one company, they all serve their UI at the same path, which is
+`/acme/ui/{flow_name}`. But as the apps were developed at different points in time, the team's approach to hosting changed and
+influenced the base paths used for serving UI:
+
+- mufflers.com uses `mufflers.com/auth`
+- carseats.com uses `carseats.com`
+- wipers.com uses `wipers.com/self-service/`
+
+ACME creates this setup at <ConsoleLink route="project.accountExperience.theming" />.
+
+| Website      | Custom Domain    | Cookie Domain | Custom UI Base URL       |
+| ------------ | ---------------- | ------------- | ------------------------ |
+| mufflers.com | ory.mufflers.com | mufflers.com  | mufflers.com/auth        |
+| carseats.com | ory.carseats.com | carseats.com  | carseats.com             |
+| wipers.com   | ory.wipers.com   | wipers.com    | wipers.com/self-service/ |
+
+This way, ACME users who create an account in one of these stores can use it to shop in the other stores as well. The UI ACME
+serves changes depending on the store the user visits which allows for consistency with the established visual identity of each of
+ACME's brands. Since these stores are hosted on different domains, the users must sign in and get an Ory Session issued for the
+store's domain when they switch between the storefronts.
+
+It's important to note that while a user can use the same account across multiple domains, they will need to authenticate
+separately on each domain. This is because cookies, including the session cookie issued by Ory, are isolated in the browser per
+domain to prevent cross-site attacks. Therefore, there will be one session per domain. As an alternative for managing multiple
+domains, you can use OpenID Connect. However, even with OpenID Connect, there will still be one session per domain.
+
+## Development
+
+When developing locally, you can configure Ory Network to use UI views hosted on local machine, for example
+`http://localhost:1234/login`.
+
+To do that, use [Ory Tunnel](../../guides/cli/20_proxy-and-tunnel.mdx) to create a connection between your local environment and
+Ory Network and configure the system to accept `http://localhost:1234/` as part of the same domain as your project.
+
+:::note
+
+Use Ory Tunnel just for development purposes. When you go to production, always add a custom domain to your project.
+
+:::
+
+## Reference implementations and examples
+
+Several reference implementations and guides are available for building your own user interface and forms on top of Ory's APIs:
+
+- [Add Custom Login, Registration, User Settings to Your Next.js & React Single Page Application (SPA)](https://www.ory.sh/nextjs-authentication-spa-custom-flows-open-source/)
+- [Node.js / Express.js UI Reference Implementation](https://github.com/ory/kratos-selfservice-ui-node)
+- [React Native UI Reference Implementation](https://github.com/ory/kratos-selfservice-ui-react-native)

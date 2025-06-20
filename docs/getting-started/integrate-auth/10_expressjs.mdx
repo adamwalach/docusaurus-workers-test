@@ -1,0 +1,136 @@
+---
+id: expressjs
+title: Integrate authentication into Node.js / Express.js
+sidebar_label: Node.js / Express.js
+---
+
+```mdx-code-block
+import Teaser from '../_common/teaser.mdx'
+import mp4 from '../_static/expressjs/screencast.mp4'
+import webm from '../_static/expressjs/screencast.webm'
+
+<Teaser
+  framework={<a href="https://expressjs.com/">Express.js</a>}
+  mp4={mp4}
+  webm={webm}
+/>
+```
+
+## Create Express.js app
+
+Create a new Express.js project:
+
+```shell
+mkdir your-project
+cd your-project
+
+npm init -y
+
+npm install express
+npm install -D nodemon
+```
+
+## Install Ory SDK
+
+To interact with Ory's APIs, install the Ory SDK:
+
+```shell
+npm i --save @ory/client-fetch @ory/cli
+```
+
+## Create a new Ory project
+
+```mdx-code-block
+import CreateProject from '../_common/create-project.mdx'
+
+<CreateProject />
+```
+
+## Install Ory CLI
+
+Follow [this guide](../../guides/cli/01_installation.mdx) to install the Ory CLI on your machine.
+
+### Why do I need the Ory CLI
+
+```mdx-code-block
+import OryCLI from '../_common/ory-cli.mdx'
+
+<OryCLI />
+```
+
+## Update the npm scripts
+
+Now that the Ory CLI is installed, create a new npm script to run the tunnel server:
+
+```json title="package.json"  {7}
+{
+  "name": "protect-page-login",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon index.js",
+    "tunnel": "ory tunnel --project $ORY_PROJECT_ID --port 4000 --dev http://localhost:3000"
+  },
+  "dependencies": {
+```
+
+This requires the express app (`npm run start`) to run on port 3000. However, the app has to be accessed through the port 4000
+([http://localhost:4000](http://localhost:4000)).
+
+## Validate and login
+
+Next we add a session check to the default home page of the example application. The highlighted code is what we added to check
+whether the user is signed in, and redirect them to the login page if not:
+
+```mdx-code-block
+import homePage from '!!raw-loader!../../../code-examples/protect-page-login/expressjs/index.js'
+import CodeBlock from '@theme/CodeBlock'
+
+<CodeBlock language="js" title="index.js">{homePage}</CodeBlock>
+```
+
+## Test your application
+
+Great, that's it. Let's run your application. Start the Express.js server
+
+```shell
+npm run dev
+```
+
+Next open a new terminal window and start the Ory Tunnel. Upon first start, the Ory Tunnel will ask you to log into your Ory
+Console account.
+
+```shell
+ORY_PROJECT_ID=<YOUR_PROJECT_ID> npm run tunnel
+```
+
+Replace `<YOUR_PROJECT_ID>` with your actual Ory Project ID from the Ory Console.
+
+To access the Express.js app through the Ory Tunnel open [http://localhost:4000](http://localhost:4000) in your browser. You are
+presented with Ory's Sign In page. Let's click on sign up and create your first user.
+
+## Go to production
+
+```mdx-code-block
+import ToProd from '../_common/going-to-prod.mdx'
+
+<ToProd />
+```
+
+```js
+// 1. Import SDK
+import { FrontendApi } from "@ory/client-fetch"
+
+// 2. Configure Ory
+const basePath = process.env.ORY_URL
+
+const ory = new FrontendApi(
+  new Configuration({
+    basePath,
+    credentials: "include",
+  }),
+)
+
+// 3. Sign in or grab session.
+const data = await ory.toSession()
+```

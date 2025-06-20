@@ -1,0 +1,22 @@
+---
+id: oauth2-token-introspection
+title: OAuth 2.0 token introspection
+sidebar_label: Check token validity
+---
+
+Token introspection is a mechanism for resource servers to obtain information about access tokens. With this specification,
+resource servers can check the validity of access tokens and discover other information, such as which user and which scopes are
+associated with the token.
+
+:::important
+
+Token introspection is meant for first-party or internal use only. The endpoint shouldn't be exposed publicly.
+
+:::
+
+```mdx-code-block
+import CodeBlock from '@theme/CodeBlock'
+import tsExample from '!!raw-loader!../../../code-examples/sdk/typescript/src/oauth2/token-introspect.ts'
+
+<CodeBlock language="tsx">{tsExample}</CodeBlock>
+```

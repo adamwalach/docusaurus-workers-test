@@ -1,0 +1,63 @@
+---
+id: identifier-first-authentication
+title: Identifier first authentication
+sidebar_label: Identifier first authentication
+---
+
+Identifier first authentication first requests the user's identifier such as an email or username before prompting for a password
+or other authentication methods.
+
+:::note
+
+Identifier first authentication is required when using B2B Organization login.
+
+:::
+
+This guide explains how to enable and use identifier first authentication in Ory Network and self-hosted Ory Kratos.
+
+## Ory Network
+
+To enable it:
+
+- 1. Log in to the [Ory Console](https://console.ory.sh).
+- 2. Select your project.
+- 3. Navigate to <ConsoleLink route="project.accountExperience.theming.route" />.
+- 4. Enable "Enable Account Experience 2.0 (preview)".
+- 5. Navigate to <ConsoleLink route="project.ui.route" />
+- 6. Click "Apply new UI URLs".
+- 7. Test the flow in your application by navigating to the login page.
+
+To revert, follow the same steps, disable "New Account Experience", and click "Reset to Account Experience".
+
+## Self-hosted Ory Kratos
+
+For Ory Enterprise License and Ory Apache 2.0 License users, set the following configuration in your `kratos.yaml` config file:
+
+```yaml title="kratos-config.yaml"
+selfservice:
+  flows:
+    login:
+      style: identifier_first
+```
+
+To disable this feature, set `style` to `unified`.
+
+## Account enumeration mitigation
+
+Account enumeration mitigation prevents malicious actors from being able to identify if a user exists or not.
+
+By default, Ory does not prevent account enumeration in the identifier first authentication flow. This improves user experience as
+the user quickly knows if they have an account with the chosen identifier (email / username) or not. To enable account
+enumeration, use the Ory CLI patch command
+
+```shell
+ory patch identity-config --project <project-id> --add '/security/account_enumeration/mitigate=true'
+```
+
+or if you use a config file, add the following to your `kratos.yaml` config file:
+
+```yaml title="kratos-config.yaml"
+security:
+  account_enumeration:
+    mitigate: true
+```

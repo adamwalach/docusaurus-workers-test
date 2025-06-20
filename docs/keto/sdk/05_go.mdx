@@ -1,0 +1,135 @@
+---
+id: go
+title: Ory Permissions Go SDK
+sidebar_label: Go SDK
+---
+
+```mdx-code-block
+import CodeBlock from "@theme/CodeBlock"
+import { useLatestTag } from '@site/src/hooks'
+```
+
+In this document you can find code examples for the Ory Permissions Go SDK.
+
+:::info
+
+Missing an example? Please create a
+[feature request](https://github.com/ory/docs/issues/new?assignees=&labels=feat&template=FEATURE-REQUEST.yml) and it will be added
+here.
+
+You can find more examples of SDK usage in the auto-generated documentation
+[`client-go`](https://github.com/ory/client-go/tree/master/docs).
+
+:::
+
+Ory Permissions exposes two APIs for integration
+
+- REST
+  - [Permission API](https://www.ory.sh/docs/reference/api#tag/permission)
+  - [Relationship API](https://www.ory.sh/docs/reference/api#tag/relationship)
+- [gRPC](http://ory.sh/docs/keto/reference/proto-api)
+
+## Installation
+
+### Installation REST API
+
+```mdx-code-block
+<CodeBlock className="language-shell">{`go get github.com/ory/client-go@${useLatestTag('client-go', 'master')}`}</CodeBlock>
+```
+
+### Installation gRPC API
+
+```go
+go get github.com/ory/keto/proto
+```
+
+## REST API examples
+
+As an example, let's create the following minimal permission rules. These just contain a `User` and `Blog` namespace as well as
+the `view` permission for the `Blog` namespace.
+
+```
+import { Namespace, SubjectSet, Context } from "@ory/keto-namespace-types"
+
+class User implements Namespace { }
+
+class Blog implements Namespace {
+  related: {
+    viewers: User[]
+  }
+
+  permits = {
+    view: (ctx: Context): boolean =>
+      this.related.viewers.includes(ctx.subject)
+  }
+}
+```
+
+If you want to learn more about creating permission rules read the
+[Create a permission model](https://www.ory.sh/docs/keto/modeling/create-permission-model) guide.
+
+### CreateRelationship and CheckPermission
+
+The following code creates and checks the following permission:
+
+```
+Blog:secret_post#view@Bob
+```
+
+This means Bob can view the `secret_post` in the `Blog` namespace.
+
+1. Export your API Key as "ORY_API_KEY"
+1. Run the example and send the request with `go run main.go`
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+
+	ory "github.com/ory/client-go"
+)
+
+// Use this context to access Ory APIs which require an Ory API Key.
+var oryAuthedContext = context.WithValue(context.Background(), ory.ContextAccessToken, os.Getenv("ORY_API_KEY"))
+var namespace = "Blog"
+var object = "secret_post"
+var relation = "view"
+var subjectId = "Bob"
+
+func main() {
+	payload := ory.CreateRelationshipBody{
+		Namespace: &namespace,
+		Object:    &object,
+		Relation:  &relation,
+		SubjectId: &subjectId,
+	}
+	configuration := ory.NewConfiguration()
+	configuration.Servers = []ory.ServerConfiguration{
+		{
+			URL: "https://practical-swirles-whg26u2ofh.projects.oryapis.com", // Write API
+		},
+	}
+	ory := ory.NewAPIClient(configuration)
+	_, r, err := ory.RelationshipApi.CreateRelationship(oryAuthedContext).CreateRelationshipBody(payload).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+		panic("Encountered error: " + err.Error())
+	}
+	fmt.Println("Successfully created tuple")
+	check, r, err := ory.PermissionApi.CheckPermission(oryAuthedContext).
+		Namespace(*&namespace).
+		Object(*&object).
+		Relation(*&relation).
+		SubjectId(*&subjectId).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+		panic("Encountered error: " + err.Error())
+	}
+	if check.Allowed {
+		fmt.Println(*&subjectId + " can " + *&relation + " the " + *&object)
+	}
+}
+```

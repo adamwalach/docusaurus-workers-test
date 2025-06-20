@@ -1,0 +1,190 @@
+---
+id: auth0
+title: Add Auth0 as a social sign-in provider in Ory
+sidebar_label: Auth0
+---
+
+# Auth0
+
+```mdx-code-block
+import JsonnetWarning from "../../_common/jsonnetwarning.mdx"
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs>
+<TabItem value="console" label="Ory Console" default>
+```
+
+Follow these steps to add Auth0 as a social sign-in provider to your project using the Ory Console:
+
+1. Go to <ConsoleLink route="project.socialSignIn" />.
+2. Click the switch next to the Auth0 logo to start the configuration.
+3. Copy the Redirect URI and save it for later use.
+4. [Create an Auth0 Application for your Auth0 Tenant](https://auth0.com/docs/applications), noting the following points:
+   - Choose the application type to be **Regular Web Applications**.
+   - Paste the saved Redirect URI from Ory into the **Allowed Callback URLs** field in the **Settings** tab of the registered
+     application.
+5. Go to the **Settings** tab of the registered application on the Auth0 dashboard and copy the following data to the
+   corresponding fields in the form in the Ory Console:
+   - **Client ID**
+   - **Client Secret**
+6. Go to the **Advanced Settings** then **Endpoints** and copy the Auth0 top-level domain (typically
+   `https://myAuth0Tenant.auth0.com`) to the **Tenant URL** field of the form in the Ory Console.
+7. In the **Scopes** field of the form in the Ory Console, add the following scopes:
+   - `openid`
+   - `profile`
+   - `email`
+8. In the **Data Mapping** field of the form in the Ory Console, add the following Jsonnet code snippet, which maps the desired
+   claims to the Ory Identity schema:
+
+   ```jsonnet
+   local claims = {
+     email_verified: false,
+   } + std.extVar('claims');
+
+   {
+     identity: {
+       traits: {
+         [if 'email' in claims && claims.email_verified then 'email' else null]: claims.email,
+         // Allowing unverified email addresses enables account
+         // enumeration attacks,  if the value is used for
+         // verification or as a password login identifier.
+         //
+         // Therefore we only return the email if it (a) exists and (b) is marked verified
+         // by Auth0.
+
+         // Auth0 can also provide a username. If you want to store it in the identity adjust your identity schema as well and make sure to adjust the scopes.
+         // username: claims.nickname,
+       },
+     },
+   }
+   ```
+
+   :::info
+
+   [Auth0](https://docs.gitlab.com/ee/integration/openid_connect_provider.html) returns only the `sub` and `sub_legacy` claims in
+   the `id_token`. Ory makes a request to [Auth0's /userinfo API](https://auth0.com/docs/api/authentication?http#user-profile) and
+   adds the user info to `std.extVar('claims')`.
+
+   :::
+
+```mdx-code-block
+   <JsonnetWarning format="Jsonnet code snippets" use="data mapping" />
+```
+
+9. Click **Save Configuration**.
+
+```mdx-code-block
+</TabItem>
+<TabItem value="cli" label="Ory CLI">
+```
+
+Follow these steps to add Auth0 as a social sign-in provider to your project using the Ory CLI:
+
+1. [Create an Auth0 Application for your Auth0 Tenant](https://auth0.com/docs/applications).
+2. In the created app, set the redirect URI to:
+
+   ```shell
+   https://$PROJECT_SLUG.projects.oryapis.com/self-service/methods/oidc/callback/auth0
+   ```
+
+3. Create a Jsonnet code snippet to map the desired claims to the Ory Identity schema.
+
+   ```jsonnet
+   local claims = {
+     email_verified: false,
+   } + std.extVar('claims');
+
+   {
+     identity: {
+       traits: {
+         // Allowing unverified email addresses enables account
+         // enumeration attacks,  if the value is used for
+         // verification or as a password login identifier.
+         //
+         // Therefore we only return the email if it (a) exists and (b) is marked verified
+         // by Auth0.
+         [if 'email' in claims && claims.email_verified then 'email' else null]: claims.email,
+         username: claims.nickname,
+       },
+     },
+   }
+   ```
+
+   :::info
+
+   [Auth0](https://docs.gitlab.com/ee/integration/openid_connect_provider.html) returns only the `sub` and `sub_legacy` claims in
+   the `id_token`. Ory makes a request to [Auth0's /userinfo API](https://auth0.com/docs/api/authentication?http#user-profile) and
+   adds the user info to `std.extVar('claims')`.
+
+   :::
+
+```mdx-code-block
+   <JsonnetWarning format="Jsonnet code snippets" use="data mapping" />
+```
+
+1. Encode the Jsonnet snippet with [Base64](https://www.base64encode.org/) or host it under an URL accessible to Ory Network.
+
+   ```shell
+   cat your-data-mapping.jsonnet | base64
+   ```
+
+2. Download the Ory Identities config from your project and save it to a file:
+
+   ```shell
+   ## List all available workspaces
+   ory list workspaces
+
+   ## List all available projects
+   ory list projects --workspace <workspace-id>
+
+   ## Get config
+   ory get identity-config --project <project-id> --workspace <workspace-id> --format yaml > identity-config.yaml
+   ```
+
+3. Add the social sign-in provider configuration to the downloaded config. Add the Jsonnet snippet with mappings as a Base64
+   string or provide an URL to the file.
+
+   ```yaml
+   selfservice:
+     methods:
+       oidc:
+         config:
+           providers:
+             - client_id: .... # Replace this with the OAuth2 Client ID provided by Auth0
+               client_secret: .... # Replace this with the OAuth2 Client Secret provided by Auth0
+               id: auth0 # this is `<provider-id>` in the Authorization callback URL. DO NOT CHANGE IT ONCE SET!
+               mapper_url: "base64://{YOUR_BASE64_ENCODED_JSONNET_HERE}"
+               # Alternatively, use an URL:
+               # mapper_url: https://storage.googleapis.com/abc-cde-prd/9cac9717f007808bf17f22ce7f4295c739604b183f05ac4afb4
+               issuer_url: .... # Replace this with the endpoint of the Auth0 tenant.
+               provider: auth0
+               scope:
+                 - openid
+                 - profile
+                 - email
+         enabled: true
+   ```
+
+4. Update the Ory Identities configuration using the file you worked with:
+
+   ```shell
+   ory update identity-config --project <project-id> --workspace <workspace-id> --file identity-config.yaml
+   ```
+
+```mdx-code-block
+</TabItem>
+</Tabs>
+```
+
+## Troubleshooting
+
+```mdx-code-block
+import SocialSigninTroubleshooting from '../_common/social-sign-in-troubleshooting.mdx'
+
+<SocialSigninTroubleshooting />
+```
+
+### `Requested url does not match any rules`
+
+If you see this error after clicking on "Sign in with Auth0", make sure that the "Tenant URL"/`issuer_url` is set correctly.

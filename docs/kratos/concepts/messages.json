@@ -1,0 +1,854 @@
+[
+  {
+    "id": 1010001,
+    "text": "Sign in",
+    "type": "info"
+  },
+  {
+    "id": 1010002,
+    "text": "Sign in with {provider}",
+    "type": "info",
+    "context": {
+      "provider": "{provider}",
+      "provider_id": "{providerID}"
+    }
+  },
+  {
+    "id": 1010003,
+    "text": "Please confirm this action by verifying that it is you.",
+    "type": "info"
+  },
+  {
+    "id": 1010004,
+    "text": "Please complete the second authentication challenge.",
+    "type": "info"
+  },
+  {
+    "id": 1010005,
+    "text": "Verify",
+    "type": "info"
+  },
+  {
+    "id": 1010006,
+    "text": "Authentication code",
+    "type": "info"
+  },
+  {
+    "id": 1010007,
+    "text": "Backup recovery code",
+    "type": "info"
+  },
+  {
+    "id": 1010008,
+    "text": "Sign in with hardware key",
+    "type": "info"
+  },
+  {
+    "id": 1010009,
+    "text": "Use Authenticator",
+    "type": "info"
+  },
+  {
+    "id": 1010010,
+    "text": "Use backup recovery code",
+    "type": "info"
+  },
+  {
+    "id": 1010011,
+    "text": "Sign in with hardware key",
+    "type": "info"
+  },
+  {
+    "id": 1010012,
+    "text": "Prepare your WebAuthn device (e.g. security key, biometrics scanner, ...) and press continue.",
+    "type": "info"
+  },
+  {
+    "id": 1010013,
+    "text": "Continue",
+    "type": "info"
+  },
+  {
+    "id": 1010014,
+    "text": "A code has been sent to the address you provided. If you have not received an message, check the spelling of the address and retry the login.",
+    "type": "info"
+  },
+  {
+    "id": 1010015,
+    "text": "Send sign in code",
+    "type": "info"
+  },
+  {
+    "id": 1010016,
+    "text": "You tried to sign in with \"{duplicateIdentifier}\", but that email is already used by another account. Sign in to your account with one of the options below to add your account \"{duplicateIdentifier}\" at \"{provider}\" as another way to sign in.",
+    "type": "info",
+    "context": {
+      "available_credential_types": ["{available_credential_types_list}"],
+      "available_providers": ["{available_oidc_providers_list}"],
+      "duplicateIdentifier": "{duplicateIdentifier}",
+      "duplicate_identifier": "{duplicateIdentifier}",
+      "newLoginUrl": "{newLoginUrl}",
+      "new_login_url": "{newLoginUrl}",
+      "provider": "{provider}"
+    }
+  },
+  {
+    "id": 1010017,
+    "text": "Sign in and link",
+    "type": "info"
+  },
+  {
+    "id": 1010018,
+    "text": "Confirm with {provider}",
+    "type": "info",
+    "context": {
+      "provider": "{provider}"
+    }
+  },
+  {
+    "id": 1010019,
+    "text": "Request code to continue",
+    "type": "info"
+  },
+  {
+    "id": 1010021,
+    "text": "Sign in with passkey",
+    "type": "info"
+  },
+  {
+    "id": 1010022,
+    "text": "Sign in with password",
+    "type": "info"
+  },
+  {
+    "id": 1010023,
+    "text": "Send code to {address}",
+    "type": "info",
+    "context": {
+      "address": "{address}",
+      "channel": "{channel}"
+    }
+  },
+  {
+    "id": 1040001,
+    "text": "Sign up",
+    "type": "info"
+  },
+  {
+    "id": 1040002,
+    "text": "Sign up with {provider}",
+    "type": "info",
+    "context": {
+      "provider": "{provider}",
+      "provider_id": "{providerID}"
+    }
+  },
+  {
+    "id": 1040003,
+    "text": "Continue",
+    "type": "info"
+  },
+  {
+    "id": 1040004,
+    "text": "Sign up with security key",
+    "type": "info"
+  },
+  {
+    "id": 1040005,
+    "text": "A code has been sent to the address(es) you provided. If you have not received a message, check the spelling of the address and retry the registration.",
+    "type": "info"
+  },
+  {
+    "id": 1040006,
+    "text": "Send sign up code",
+    "type": "info"
+  },
+  {
+    "id": 1040007,
+    "text": "Sign up with passkey",
+    "type": "info"
+  },
+  {
+    "id": 1040008,
+    "text": "Back",
+    "type": "info"
+  },
+  {
+    "id": 1040009,
+    "text": "Please choose a credential to authenticate yourself with.",
+    "type": "info"
+  },
+  {
+    "id": 1050001,
+    "text": "Your changes have been saved!",
+    "type": "success"
+  },
+  {
+    "id": 1050002,
+    "text": "Link {provider}",
+    "type": "info",
+    "context": {
+      "provider": "{provider}"
+    }
+  },
+  {
+    "id": 1050003,
+    "text": "Unlink {provider}",
+    "type": "info",
+    "context": {
+      "provider": "{provider}"
+    }
+  },
+  {
+    "id": 1050004,
+    "text": "Unlink TOTP Authenticator App",
+    "type": "info"
+  },
+  {
+    "id": 1050005,
+    "text": "Authenticator app QR code",
+    "type": "info"
+  },
+  {
+    "id": 1050006,
+    "text": "{secret}",
+    "type": "info",
+    "context": {
+      "secret": "{secret}"
+    }
+  },
+  {
+    "id": 1050007,
+    "text": "Reveal backup recovery codes",
+    "type": "info"
+  },
+  {
+    "id": 1050008,
+    "text": "Generate new backup recovery codes",
+    "type": "info"
+  },
+  {
+    "id": 1050009,
+    "text": "{secret}",
+    "type": "info",
+    "context": {
+      "secret": "{secret}"
+    }
+  },
+  {
+    "id": 1050010,
+    "text": "These are your back up recovery codes. Please keep them in a safe place!",
+    "type": "info"
+  },
+  {
+    "id": 1050011,
+    "text": "Confirm backup recovery codes",
+    "type": "info"
+  },
+  {
+    "id": 1050012,
+    "text": "Add security key",
+    "type": "info"
+  },
+  {
+    "id": 1050013,
+    "text": "Name of the security key",
+    "type": "info"
+  },
+  {
+    "id": 1050014,
+    "text": "Secret was used at 2020-01-01 00:59:59 +0000 UTC",
+    "type": "info",
+    "context": {
+      "used_at": "2020-01-01T00:59:59Z",
+      "used_at_unix": 1577840399
+    }
+  },
+  {
+    "id": 1050015,
+    "text": "{secrets_list}",
+    "type": "info",
+    "context": {
+      "secrets": [
+        {
+          "id": 1050009,
+          "text": "{secret}",
+          "type": "info",
+          "context": {
+            "secret": "{secret}"
+          }
+        },
+        {
+          "id": 1050014,
+          "text": "Secret was used at 2020-01-01 00:59:59 +0000 UTC",
+          "type": "info",
+          "context": {
+            "used_at": "2020-01-01T00:59:59Z",
+            "used_at_unix": 1577840399
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": 1050016,
+    "text": "Disable this method",
+    "type": "info"
+  },
+  {
+    "id": 1050017,
+    "text": "This is your authenticator app secret. Use it if you can not scan the QR code.",
+    "type": "info"
+  },
+  {
+    "id": 1050018,
+    "text": "Remove security key \"{display_name}\"",
+    "type": "info",
+    "context": {
+      "added_at": "2020-01-01T00:59:59Z",
+      "added_at_unix": 1577840399,
+      "display_name": "{display_name}"
+    }
+  },
+  {
+    "id": 1050019,
+    "text": "Add passkey",
+    "type": "info"
+  },
+  {
+    "id": 1050020,
+    "text": "Remove passkey \"{display_name}\"",
+    "type": "info",
+    "context": {
+      "added_at": "2020-01-01T00:59:59Z",
+      "added_at_unix": 1577840399,
+      "display_name": "{display_name}"
+    }
+  },
+  {
+    "id": 1060001,
+    "text": "You successfully recovered your account. Please change your password or set up an alternative login method (e.g. social sign in) within the next 1.00 minutes.",
+    "type": "success",
+    "context": {
+      "privilegedSessionExpiresAt": "2020-01-01T01:01:00Z",
+      "privileged_session_expires_at": "2020-01-01T01:01:00Z",
+      "privileged_session_expires_at_unix": 1577840460
+    }
+  },
+  {
+    "id": 1060002,
+    "text": "An email containing a recovery link has been sent to the email address you provided. If you have not received an email, check the spelling of the address and make sure to use the address you registered with.",
+    "type": "info"
+  },
+  {
+    "id": 1060003,
+    "text": "An email containing a recovery code has been sent to the email address you provided. If you have not received an email, check the spelling of the address and make sure to use the address you registered with.",
+    "type": "info"
+  },
+  {
+    "id": 1070001,
+    "text": "Password",
+    "type": "info"
+  },
+  {
+    "id": 1070002,
+    "text": "{title}",
+    "type": "info",
+    "context": {
+      "title": "{title}"
+    }
+  },
+  {
+    "id": 1070003,
+    "text": "Save",
+    "type": "info"
+  },
+  {
+    "id": 1070004,
+    "text": "ID",
+    "type": "info"
+  },
+  {
+    "id": 1070005,
+    "text": "Submit",
+    "type": "info"
+  },
+  {
+    "id": 1070006,
+    "text": "Verify code",
+    "type": "info"
+  },
+  {
+    "id": 1070007,
+    "text": "Email",
+    "type": "info"
+  },
+  {
+    "id": 1070008,
+    "text": "Resend code",
+    "type": "info"
+  },
+  {
+    "id": 1070009,
+    "text": "Continue",
+    "type": "info"
+  },
+  {
+    "id": 1070010,
+    "text": "Recovery code",
+    "type": "info"
+  },
+  {
+    "id": 1070011,
+    "text": "Verification code",
+    "type": "info"
+  },
+  {
+    "id": 1070012,
+    "text": "Registration code",
+    "type": "info"
+  },
+  {
+    "id": 1070013,
+    "text": "Login code",
+    "type": "info"
+  },
+  {
+    "id": 1070014,
+    "text": "Login and link credential",
+    "type": "info"
+  },
+  {
+    "id": 1070015,
+    "text": "Please complete the captcha challenge to continue.",
+    "type": "info"
+  },
+  {
+    "id": 1080001,
+    "text": "An email containing a verification link has been sent to the email address you provided. If you have not received an email, check the spelling of the address and make sure to use the address you registered with.",
+    "type": "info"
+  },
+  {
+    "id": 1080002,
+    "text": "You successfully verified your email address.",
+    "type": "success"
+  },
+  {
+    "id": 1080003,
+    "text": "An email containing a verification code has been sent to the email address you provided. If you have not received an email, check the spelling of the address and make sure to use the address you registered with.",
+    "type": "info"
+  },
+  {
+    "id": 4000001,
+    "text": "{reason}",
+    "type": "error",
+    "context": {
+      "reason": "{reason}"
+    }
+  },
+  {
+    "id": 4000002,
+    "text": "Property {property} is missing.",
+    "type": "error",
+    "context": {
+      "property": "{property}"
+    }
+  },
+  {
+    "id": 4000003,
+    "text": "length must be \u003e= 5, but got 3",
+    "type": "error",
+    "context": {
+      "actual_length": 3,
+      "min_length": 5
+    }
+  },
+  {
+    "id": 4000004,
+    "text": "does not match pattern \"{pattern}\"",
+    "type": "error",
+    "context": {
+      "pattern": "{pattern}"
+    }
+  },
+  {
+    "id": 4000005,
+    "text": "The password can not be used because {reason}.",
+    "type": "error",
+    "context": {
+      "reason": "{reason}"
+    }
+  },
+  {
+    "id": 4000006,
+    "text": "The provided credentials are invalid, check for spelling mistakes in your password or username, email address, or phone number.",
+    "type": "error"
+  },
+  {
+    "id": 4000007,
+    "text": "An account with the same identifier (email, phone, username, ...) exists already.",
+    "type": "error"
+  },
+  {
+    "id": 4000008,
+    "text": "The provided authentication code is invalid, please try again.",
+    "type": "error"
+  },
+  {
+    "id": 4000009,
+    "text": "Could not find any login identifiers. Did you forget to set them? This could also be caused by a server misconfiguration.",
+    "type": "error"
+  },
+  {
+    "id": 4000010,
+    "text": "Account not active yet. Did you forget to verify your email address?",
+    "type": "error"
+  },
+  {
+    "id": 4000011,
+    "text": "You have no TOTP device set up.",
+    "type": "error"
+  },
+  {
+    "id": 4000012,
+    "text": "This backup recovery code has already been used.",
+    "type": "error"
+  },
+  {
+    "id": 4000013,
+    "text": "You have no WebAuthn device set up.",
+    "type": "error"
+  },
+  {
+    "id": 4000014,
+    "text": "You have no backup recovery codes set up.",
+    "type": "error"
+  },
+  {
+    "id": 4000015,
+    "text": "This account does not exist or has no security key set up.",
+    "type": "error"
+  },
+  {
+    "id": 4000016,
+    "text": "The backup recovery code is not valid.",
+    "type": "error"
+  },
+  {
+    "id": 4000017,
+    "text": "length must be \u003c= 5, but got 6",
+    "type": "error",
+    "context": {
+      "actual_length": 6,
+      "max_length": 5
+    }
+  },
+  {
+    "id": 4000018,
+    "text": "must be \u003e= 5 but found 3",
+    "type": "error",
+    "context": {
+      "actual": 3,
+      "minimum": 5
+    }
+  },
+  {
+    "id": 4000019,
+    "text": "must be \u003e 5 but found 5",
+    "type": "error",
+    "context": {
+      "actual": 5,
+      "minimum": 5
+    }
+  },
+  {
+    "id": 4000020,
+    "text": "must be \u003c= 5 but found 6",
+    "type": "error",
+    "context": {
+      "actual": 6,
+      "maximum": 5
+    }
+  },
+  {
+    "id": 4000021,
+    "text": "must be \u003c 5 but found 5",
+    "type": "error",
+    "context": {
+      "actual": 5,
+      "maximum": 5
+    }
+  },
+  {
+    "id": 4000022,
+    "text": "3 not multipleOf 7",
+    "type": "error",
+    "context": {
+      "actual": 3,
+      "base": 7
+    }
+  },
+  {
+    "id": 4000023,
+    "text": "maximum 3 items allowed, but found 4 items",
+    "type": "error",
+    "context": {
+      "actual_items": 4,
+      "max_items": 3
+    }
+  },
+  {
+    "id": 4000024,
+    "text": "minimum 3 items allowed, but found 2 items",
+    "type": "error",
+    "context": {
+      "actual_items": 2,
+      "min_items": 3
+    }
+  },
+  {
+    "id": 4000025,
+    "text": "items at index 0 and 2 are equal",
+    "type": "error",
+    "context": {
+      "index_a": 0,
+      "index_b": 2
+    }
+  },
+  {
+    "id": 4000026,
+    "text": "expected {allowed_types_list}, but got {actual_type}",
+    "type": "error",
+    "context": {
+      "actual_type": "{actual_type}",
+      "allowed_types": ["{allowed_types_list}"]
+    }
+  },
+  {
+    "id": 4000027,
+    "text": "An account with the same identifier (email, phone, username, ...) exists already. Please sign in to your existing account to link your social profile.",
+    "type": "error"
+  },
+  {
+    "id": 4000028,
+    "text": "You tried signing in with {credential_identifier_hint} which is already in use by another account. You can sign in using {available_credential_types_list}. You can sign in using one of the following social sign in providers: {Available_oidc_providers_list}.",
+    "type": "error",
+    "context": {
+      "available_credential_types": ["{available_credential_types_list}"],
+      "available_oidc_providers": ["{available_oidc_providers_list}"],
+      "credential_identifier_hint": "{credential_identifier_hint}"
+    }
+  },
+  {
+    "id": 4000029,
+    "text": "must be equal to constant {expected}",
+    "type": "error",
+    "context": {
+      "expected": "{expected}"
+    }
+  },
+  {
+    "id": 4000030,
+    "text": "const failed",
+    "type": "error"
+  },
+  {
+    "id": 4000031,
+    "text": "The password can not be used because it is too similar to the identifier.",
+    "type": "error"
+  },
+  {
+    "id": 4000032,
+    "text": "The password must be at least 6 characters long, but got 5.",
+    "type": "error",
+    "context": {
+      "actual_length": 5,
+      "min_length": 6
+    }
+  },
+  {
+    "id": 4000033,
+    "text": "The password must be at most 72 characters long, but got 80.",
+    "type": "error",
+    "context": {
+      "actual_length": 80,
+      "max_length": 72
+    }
+  },
+  {
+    "id": 4000034,
+    "text": "The password has been found in data breaches and must no longer be used.",
+    "type": "error",
+    "context": {
+      "breaches": 101
+    }
+  },
+  {
+    "id": 4000035,
+    "text": "This account does not exist or has not setup sign in with code.",
+    "type": "error"
+  },
+  {
+    "id": 4000036,
+    "text": "The provided traits do not match the traits previously associated with this flow.",
+    "type": "error"
+  },
+  {
+    "id": 4000037,
+    "text": "This account does not exist or has no login method configured.",
+    "type": "error"
+  },
+  {
+    "id": 4000038,
+    "text": "Captcha verification failed, please try again.",
+    "type": "error"
+  },
+  {
+    "id": 4010001,
+    "text": "The login flow expired 1.00 minutes ago, please try again.",
+    "type": "error",
+    "context": {
+      "expired_at": "2020-01-01T00:59:59Z",
+      "expired_at_unix": 1577840399
+    }
+  },
+  {
+    "id": 4010002,
+    "text": "Could not find a strategy to log you in with. Did you fill out the form correctly?",
+    "type": "error"
+  },
+  {
+    "id": 4010003,
+    "text": "Could not find a strategy to sign you up with. Did you fill out the form correctly?",
+    "type": "error"
+  },
+  {
+    "id": 4010004,
+    "text": "Could not find a strategy to update your settings. Did you fill out the form correctly?",
+    "type": "error"
+  },
+  {
+    "id": 4010005,
+    "text": "Could not find a strategy to recover your account with. Did you fill out the form correctly?",
+    "type": "error"
+  },
+  {
+    "id": 4010006,
+    "text": "Could not find a strategy to verify your account with. Did you fill out the form correctly?",
+    "type": "error"
+  },
+  {
+    "id": 4010007,
+    "text": "The request was already completed successfully and can not be retried.",
+    "type": "error"
+  },
+  {
+    "id": 4010008,
+    "text": "The login code is invalid or has already been used. Please try again.",
+    "type": "error"
+  },
+  {
+    "id": 4010009,
+    "text": "Linked credentials do not match.",
+    "type": "error"
+  },
+  {
+    "id": 4010010,
+    "text": "The address you entered does not match any known addresses in the current account.",
+    "type": "error"
+  },
+  {
+    "id": 4040001,
+    "text": "The registration flow expired 1.00 minutes ago, please try again.",
+    "type": "error",
+    "context": {
+      "expired_at": "2020-01-01T00:59:59Z",
+      "expired_at_unix": 1577840399
+    }
+  },
+  {
+    "id": 4040002,
+    "text": "The request was already completed successfully and can not be retried.",
+    "type": "error"
+  },
+  {
+    "id": 4040003,
+    "text": "The registration code is invalid or has already been used. Please try again.",
+    "type": "error"
+  },
+  {
+    "id": 4050001,
+    "text": "The settings flow expired 1.00 minutes ago, please try again.",
+    "type": "error",
+    "context": {
+      "expired_at": "2020-01-01T00:59:59Z",
+      "expired_at_unix": 1577840399
+    }
+  },
+  {
+    "id": 4060001,
+    "text": "The request was already completed successfully and can not be retried.",
+    "type": "error"
+  },
+  {
+    "id": 4060002,
+    "text": "The recovery flow reached a failure state and must be retried.",
+    "type": "error"
+  },
+  {
+    "id": 4060004,
+    "text": "The recovery token is invalid or has already been used. Please retry the flow.",
+    "type": "error"
+  },
+  {
+    "id": 4060005,
+    "text": "The recovery flow expired 1.00 minutes ago, please try again.",
+    "type": "error",
+    "context": {
+      "expired_at": "2020-01-01T00:59:59Z",
+      "expired_at_unix": 1577840399
+    }
+  },
+  {
+    "id": 4060006,
+    "text": "The recovery code is invalid or has already been used. Please try again.",
+    "type": "error"
+  },
+  {
+    "id": 4070001,
+    "text": "The verification token is invalid or has already been used. Please retry the flow.",
+    "type": "error"
+  },
+  {
+    "id": 4070002,
+    "text": "The request was already completed successfully and can not be retried.",
+    "type": "error"
+  },
+  {
+    "id": 4070003,
+    "text": "The verification flow reached a failure state and must be retried.",
+    "type": "error"
+  },
+  {
+    "id": 4070005,
+    "text": "The verification flow expired 1.00 minutes ago, please try again.",
+    "type": "error",
+    "context": {
+      "expired_at": "2020-01-01T00:59:59Z",
+      "expired_at_unix": 1577840399
+    }
+  },
+  {
+    "id": 4070006,
+    "text": "The verification code is invalid or has already been used. Please try again.",
+    "type": "error"
+  },
+  {
+    "id": 5000001,
+    "text": "{reason}",
+    "type": "error",
+    "context": {
+      "reason": "{reason}"
+    }
+  }
+]

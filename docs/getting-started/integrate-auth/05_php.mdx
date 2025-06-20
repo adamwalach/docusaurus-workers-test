@@ -1,0 +1,128 @@
+---
+id: php
+title: Integrate authentication into PHP
+sidebar_label: PHP
+---
+
+```mdx-code-block
+import Teaser from '../_common/teaser.mdx'
+import mp4 from '../_static/php/screencast.mp4'
+import webm from '../_static/php/screencast.webm'
+
+<Teaser
+  framework={<a href="https://www.php.net/">PHP</a>}
+  mp4={mp4}
+  webm={webm}
+/>
+```
+
+## Create PHP app
+
+First we create a new PHP project:
+
+```shell
+mkdir your-project
+cd your-project
+touch index.php
+```
+
+## Install Ory SDK
+
+To interact with Ory's APIs we install the [Ory SDK](https://packagist.org/packages/ory/client):
+
+```shell
+composer require ory/client
+```
+
+To simplify URLs handling we also install the [bramus/router](https://packagist.org/packages/bramus/router)
+
+```shell
+composer require bramus/router
+```
+
+## Create a new Ory project
+
+```mdx-code-block
+import CreateProject from '../_common/create-project.mdx'
+
+<CreateProject />
+```
+
+## Install Ory CLI
+
+Follow [this guide](../../guides/cli/01_installation.mdx) to install the Ory CLI on your machine.
+
+### Why do I need the Ory CLI
+
+```mdx-code-block
+import OryCLI from '../_common/ory-cli.mdx'
+
+<OryCLI isTunnel={true} />
+```
+
+## Create an Entry Page
+
+Create a new file called `index.php` and paste the following code:
+
+```mdx-code-block
+import indexPHP from '!!raw-loader!../../../code-examples/protect-page-login/php/index.php'
+import CodeBlock from '@theme/CodeBlock'
+
+<CodeBlock language="php" title="./index.php">{indexPHP}</CodeBlock>
+```
+
+This entry script creates an Ory client, registers new route for our Dashboard and makes use of
+[Before Route Middlewares](https://github.com/bramus/router#before-router-middlewares) to validate if the user is allowed to view
+the Dashboard.
+
+We are yet to create an App class, let's do that now.
+
+## Validate and login
+
+Create a new file called `app.php` and paste the following code:
+
+```mdx-code-block
+import appPHP from '!!raw-loader!../../../code-examples/protect-page-login/php/app.php'
+
+<CodeBlock language="php" title="app.php">{appPHP}</CodeBlock>
+```
+
+Create a handler that checks with your Ory project to determine if the user has a valid session. We take the current `request`
+cookies and pass them to the Ory client.
+
+This file validates the session and redirects to the login page if the session is invalid. If the session is not valid, the
+request is redirected to the Ory project for login. At this stage, we have not set up any custom UI management, so the Ory Account
+Experience login page will be displayed.
+
+Finally, we added the Dashboard handler (the page we want to protect), which will render HTML with the session data.
+
+## Test your application
+
+Start your HTTP server and access the tunnel URL
+
+```shell
+php -S 127.0.0.1:3000
+```
+
+Next open a new terminal window and start the Ory Tunnel. Upon first start, the Ory Tunnel will ask you to log into your Ory
+Console account.
+
+```shell
+ory tunnel --project <PROJECT_ID> http://localhost:3000
+```
+
+To access the PHP app through the Ory Tunnel, open [http://localhost:4000](http://localhost:4000) in your browser. You are
+presented with Ory's Sign In page. Let's click on sign up and create your first user.
+
+## Go to production
+
+```mdx-code-block
+import ToProd from '../_common/going-to-prod.mdx'
+
+<ToProd />
+```
+
+```php
+$config = Ory\Client\Configuration::getDefaultConfiguration()->setHost("https://ory.example.org"));
+$ory = new Ory\Client\Api\FrontendApi(new GuzzleHttp\Client(), $config);
+```

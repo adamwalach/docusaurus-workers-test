@@ -1,0 +1,143 @@
+---
+id: react
+title: Integrate authentication into React + API
+sidebar_label: React
+---
+
+```mdx-code-block
+import Teaser from '../_common/teaser.mdx'
+import mp4 from '../_static/react/screencast.mp4'
+import webm from '../_static/react/screencast.webm'
+
+<Teaser
+  framework={<a href="https://reactjs.org/">React</a>}
+  mp4={mp4}
+  webm={webm}
+/>
+```
+
+## Create React app
+
+First, create a new React project:
+
+```shell
+npm create vite@latest -- --template react-ts
+cd app-name
+npm install
+```
+
+## Install Ory SDK
+
+To interact with Ory's APIs, install the Ory SDK:
+
+```
+npm i @ory/client-fetch
+```
+
+## Create a new Ory project
+
+```mdx-code-block
+import CreateProject from '../_common/create-project.mdx'
+
+<CreateProject />
+```
+
+## Install Ory CLI
+
+Follow [this guide](../../guides/cli/01_installation.mdx) to install the Ory CLI on your machine.
+
+### Why do I need the Ory CLI
+
+```mdx-code-block
+import OryCLI from '../_common/ory-cli.mdx'
+
+<OryCLI isTunnel={true} />
+```
+
+## Run Ory APIs on `localhost`
+
+In a new terminal window, start the Ory Tunnel:
+
+```shell
+ory tunnel --project <project-id> http://localhost:5173
+```
+
+This command mirrors Ory APIs on `http://localhost:4000`. Use that URL as the `basePath` for the `@ory/client-fetch` SDK. Obtain
+your project ID from the Ory Console.
+
+## Validate and login
+
+To implement authentication, modify the existing `App.tsx` component to include the following:
+
+```mdx-code-block
+import handlerReact from '!!raw-loader!../../../code-examples/protect-page-login/react/src/App.tsx'
+import CodeBlock from '@theme/CodeBlock'
+
+<CodeBlock language="tsx" title="./src/App.tsx">{handlerReact}</CodeBlock>
+```
+
+This implementation checks for an authenticated session using Ory's `toSession()` API, which verifies the user's session cookie.
+Upon successful authentication, it displays the user's session information with identity traits and provides logout functionality.
+If authentication fails, the system automatically redirects to Ory's login UI.
+
+## Run your React app
+
+Now that your app is ready, it's time to run it! Start the React development server:
+
+```shell
+npm run dev
+```
+
+Go to [localhost:5173](http://localhost:5173/) to access your application, register your first user, and try out the log in.
+
+## Make authenticated calls to your API
+
+To make authenticated requests to your API there are two main components:
+
+- When making AJAX requests you must set `{"credentials": "include"}` in the options. For the `fetch` method it looks like this:
+
+```mdx-code-block
+import AppWithAPI from '!!raw-loader!../../../code-examples/protect-page-login/react/src/AppWithApi.tsx'
+
+<CodeBlock language="tsx" title="./src/App.tsx">{AppWithAPI}</CodeBlock>
+```
+
+- Your API must have a CORS middleware with `credentials: true` and `Access-Control-Allow-Origin` of your frontend app (here
+  `http://localhost:5173`).
+
+Let's put this into action and create a basic HTTP API with Express.
+
+```shell
+cd src
+mkdir api
+cd api
+npm init --y
+npm i --save @ory/client-fetch express cors
+touch index.js
+```
+
+Create an API in `index.js`:
+
+```mdx-code-block
+import handlerApi from '!!raw-loader!../../../code-examples/protect-page-login/react/src/api/index.js'
+
+<CodeBlock language="js" title="api/index.js">{handlerApi}</CodeBlock>
+```
+
+Start the server:
+
+```shell
+node index.js
+```
+
+### Test your application
+
+Access your React app at [localhost:5173](http://localhost:5173/), sign in, and see if you can see the message from your API.
+
+## Go to production
+
+```mdx-code-block
+import ToProd from '../_common/going-to-prod.mdx'
+
+<ToProd />
+```

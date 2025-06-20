@@ -1,0 +1,464 @@
+---
+id: verify-email-account-activation
+title: Verify addresses associated with users accounts
+sidebar_label: Verification
+---
+
+# Address verification
+
+```mdx-code-block
+import CodeTabs from "@theme/Code/CodeTabs"
+
+import Tabs from "@theme/Tabs"
+import TabItem from "@theme/TabItem"
+import RenderFlow from "@theme/Code/RenderFlow"
+```
+
+Ory allows users to verify email addresses or phone numbers associated with their accounts. This is important to prove that the
+user has access to the address they used to create their account. If verification is enabled, Ory Identities starts the
+verification process automatically when users sign up. Users can also verify their addresses manually.
+
+The verification flow is supported in both browsers and API clients and can be summarized as the following state machine:
+
+```mdx-code-block
+import Mermaid from "@site/src/theme/Mermaid"
+
+<Mermaid
+  chart={`
+stateDiagram
+  s1: Flow is initialized
+  s2: User Interface renders Verification Flow Forms
+  s3: Update Verification Flow with Error Context(s)
+  s4: Verification challenge initiated (link or code via email)
+  s5: UI renders code input form (if code, link skips this)
+  s6: Show error message and reload form
+  s7: Verification completed
+  [*] --> s1 : User clicks "Verify Email/SMS/..."
+  s1 --> s2
+  s2 --> s4 : User provides valid verification data
+  s2 --> s3 : User provides invalid verification data
+  s3 --> s2
+  s4 --> s5
+  s5 --> s6 : Challenge response invalid
+  s5 --> s7 : Challenge response valid
+  s6 --> s5
+`}
+/>
+```
+
+:::caution
+
+Completing account verification doesn't guarantee that the account is used by the person who performed the verification. We
+recommend implementing additional security mechanisms to ensure that verified accounts aren't taken over by malicious actors, such
+as [TOTP](../../mfa/15_totp.mdx) or [FIDO2/WebAuthn](../../mfa/20_webauthn-fido-yubikey.mdx).
+
+:::
+
+## Configuration
+
+```mdx-code-block
+<Tabs groupId="console-or-cli">
+<TabItem value="console" label="Ory Console" default>
+```
+
+To configure account verification, go to <ConsoleLink route="project.verification" />
+
+:::caution
+
+For SMS verification to work, you'll also need to configure a courier channel with the ID set to `sms` via the CLI. See the
+[courier documentation](../../emails-sms/10_sending-sms.mdx) for more information.
+
+:::
+
+```mdx-code-block
+</TabItem>
+<TabItem value="cli" label="Ory CLI">
+```
+
+1. Download the Ory Identities config from your project and save it to a file:
+
+   ```shell
+   ## List all available workspaces
+   ory list workspaces
+
+   ## List all available projects
+   ory list projects --workspace <workspace-id>
+
+   ## Get config
+   ory get identity-config --project <project-id> --workspace <workspace-id> --format yaml > identity-config.yaml
+   ```
+
+2. Add the configuration for the verification flow
+
+   ```yaml title="config.yml"
+   selfservice:
+     methods:
+       code: # or link
+         enabled: true
+         config:
+           # Defines how long the verification or the recovery code is valid for (default 1h)
+           lifespan: 15m
+
+     flows:
+       verification:
+         use: code # Defines which method is used, one of 'code' or 'link'.
+         enabled: true
+
+         # Defines how long the verification flow (the UI interaction, not the link!)
+         # is valid for (default 1h)
+         lifespan: 15m
+
+         # Whether to notify unknown addresses, if verification is requested for them
+         notify_unknown_recipients: false
+   ```
+
+3. Update the Ory Identities configuration using the file you worked with:
+
+   ```shell
+   ory update identity-config --project <project-id> --workspace <workspace-id> --file updated_config.yaml
+   ```
+
+```mdx-code-block
+</TabItem>
+</Tabs>
+```
+
+### Identity schema
+
+To make an address verifiable, it must be marked as such in the
+[identity schema](../../manage-identities/15_customize-identity-schema.mdx). In most cases this is the email address the user
+provides when registering their account. Other fields inside the `traits` section are supported as well.
+
+```diff title="identity-schema.json"
+ {
+   "$id": "https://schemas.ory.sh/presets/kratos/quickstart/email-password/identity.schema.json",
+   "$schema": "http://json-schema.org/draft-07/schema#",
+   "title": "Person",
+   "type": "object",
+   "properties": {
+     "traits": {
+       "type": "object",
+       "properties": {
+         "email": {
+           "type": "string",
+           "format": "email",
+           "ory.sh/kratos": {
+             "credentials": {
+               "password": {
+                 "identifier": true
+               }
+             },
++            "verification": {
++              "via": "email"
++            }
+           }
+         }
+       },
+       "additionalProperties": false
+     }
+   }
+ }
+```
+
+### Attempted verification notifications
+
+When this option is on and users attempt to initiate verification for unregistered addresses, the system sends an attempted
+verification notification to the email address that was used in the attempt. This prevents account enumeration attacks as
+explained in this
+[blog post by Troy Hunt](https://www.troyhunt.com/website-enumeration-insanity-how-our-personal-data-is-leaked/).
+
+:::info
+
+By default, this feature is disabled in newly created Ory Network projects.
+
+:::
+
+Follow these steps to enable sending attempted verification notifications:
+
+```mdx-code-block
+<Tabs groupId="console-or-cli">
+<TabItem value="console" label="Ory Console" default>
+```
+
+Go to <ConsoleLink route="project.verification" /> and toggle **Notify unknown recipients** on.
+
+```mdx-code-block
+</TabItem>
+<TabItem value="cli" label="Ory CLI">
+```
+
+1. Download the Ory Identities config from your project and save it to a file:
+
+   ```shell
+   ## List all available workspaces
+   ory list workspaces
+
+   ## List all available projects
+   ory list projects --workspace <workspace-id>
+
+   ## Get config
+   ory get identity-config --project <project-id> --workspace <workspace-id> --format yaml > identity-config.yaml
+   ```
+
+2. Set `notify_unknown_recipients` to `true`:
+
+   ```yaml title="identity-config.yaml"
+   flows:
+     verification:
+       enabled: true
+       lifespan: 15m # Defines how much time the user has to complete the verification flow in the UI. Default: 1h.
+       use: code # Defines which method is used, one of 'code' or 'link'.
+       notify_unknown_recipients: true # Defines if the system sends attempted verification notifications to unregistered addresses.
+   ```
+
+3. Update the Ory Identities configuration using the file you worked with:
+
+   ```shell
+   ory update identity-config --project <project-id> --workspace <workspace-id> --file identity-config.yaml
+   ```
+
+```mdx-code-block
+</TabItem>
+</Tabs>
+```
+
+### Email templates
+
+Ory Identities comes with default email templates for verification flows.
+
+You can quickly replace the defaults and customize the messages to match the look and feel of your solution. Read the
+[custom email template documentation](../../emails-sms/05_custom-email-templates.mdx) to learn more.
+
+### Allow login only with verified email
+
+To allow only the users with a verified email to sign in, follow these steps:
+
+```mdx-code-block
+<Tabs groupId="console-or-cli">
+<TabItem value="console" label="Ory Console" default>
+```
+
+Go to <ConsoleLink route="project.verification" /> and enable **Require Verified Address for Login**.
+
+```mdx-code-block
+</TabItem>
+<TabItem value="cli" label="Ory CLI">
+```
+
+1. Download the Ory Identities config from your project and save it to a file:
+
+   ```shell
+   ## List all available workspaces
+   ory list workspaces
+
+   ## List all available projects
+   ory list projects --workspace <workspace-id>
+
+   ## Get config
+   ory get identity-config --project <project-id> --workspace <workspace-id> --format yaml > identity-config.yaml
+   ```
+
+2. Add the configuration for the verification flow
+
+   ```diff
+   selfservice:
+     flows:
+       login:
+   +      after:
+   +        hooks:
+   +        - hook: require_verified_address
+   ```
+
+3. Update the Ory Identities configuration using the file you worked with:
+
+   ```shell
+   ory update identity-config --project <project-id> --workspace <workspace-id> --file updated_config.yaml
+   ```
+
+:::tip
+
+For more information see the [hooks configuration](../../hooks/01_configure-hooks.mdx) documentation.
+
+:::
+
+```mdx-code-block
+</TabItem>
+</Tabs>
+```
+
+### Carry over verified status from Social Sign-In
+
+Some Social Sign-In providers like Google return the verified status of the email address. To carry over the verified status from
+the Social Sign-In provider, return `verified_addresses` in your Social Sign-In Jsonnet snippet:
+
+```jsonnet
+local claims = {
+  email_verified: false,
+} + std.extVar('claims');
+
+{
+  identity: {
+    traits: {
+      [if 'email' in claims && claims.email_verified then 'email' else null]: claims.email,
+      given_name: claims.given_name,
+      family_name: claims.family_name,
+    },
+    verified_addresses: std.prune([
+      // Carry over verified status from Social Sign-In provider.
+      if 'email' in claims && claims.email_verified then { via: 'email', value: claims.email },
+    ]),
+  },
+}
+```
+
+Please note that this only works if the verified address is also present in the identity's traits and marked as a verifiable
+email.
+
+```json5 title="Example identity schema"
+{
+  $id: "https://example.com/person.schema.json",
+  $schema: "http://json-schema.org/draft-07/schema#",
+  title: "Person",
+  type: "object",
+  properties: {
+    traits: {
+      type: "object",
+      properties: {
+        email: {
+          format: "email",
+          type: "string",
+          "ory.sh/kratos": {
+            // highlight-start
+            verification: {
+              via: "email",
+            },
+            // highlight-end
+          },
+        },
+      },
+      required: ["subject"],
+    },
+  },
+}
+```
+
+If the verified address is not present in the identity's traits, the verified status is not carried over.
+
+## Phone number verification
+
+To send SMS messages, you need to have a trait in your identity schema that holds the phone number. The trait must be marked as a
+verifiable address via the `verification` extension. Here's an example of how to define such a trait in the identity schema:
+
+```json
+{
+  "$id": "https://schemas.ory.sh/presets/kratos/quickstart/phone-password/identity.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Person",
+  "type": "object",
+  "properties": {
+    "traits": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "title": "E-Mail",
+          "format": "email",
+          "ory.sh/kratos": {
+            "credentials": {
+              "password": {
+                "identifier": true
+              }
+            },
+            "verification": {
+              "via": "email"
+            }
+          }
+        },
+        "phone": {
+          "type": "string",
+          "title": "Phone number",
+          "format": "tel",
+          "ory.sh/kratos": {
+            // highlight-start
+            "verification": {
+              "via": "sms"
+            }
+            // highlight-end
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
+```
+
+Make sure to configure an SMS channel in the Ory configuration. See the [SMS documentation](../../emails-sms/10_sending-sms.mdx).
+
+## Choosing the right strategy
+
+Ory supports two strategies for verifying your user's addresses.
+
+```mdx-code-block
+<Tabs>
+<TabItem value="code" label="One-time codes">
+```
+
+When using one-time codes to verify a user's address, Ory Identities sends an email with a 6-digit code to the user. They must
+enter the code in a dedicated UI text field to verify their address.
+
+The email also contains a link, that takes the user to the verification form with the code pre-filled in the appropriate form
+field. The only thing the user must do to verify their address is to submit the form.
+
+```mdx-code-block
+</TabItem>
+<TabItem value="link" label="Magic Links">
+```
+
+:::warning
+
+This strategy is only available for backwards compatibility and should not be used.
+
+:::
+
+When using the "magic link" method, Ory Identities sends the user an email with a verification link. If the user has access to the
+email associated with the account and clicks the link, Ory Identities marks that address as verified.
+
+```mdx-code-block
+</TabItem>
+</Tabs>
+```
+
+If the user completes the verification after the link or code expired, they must provide the email address associated with their
+account to get a new verification email.
+
+### Comparison
+
+```mdx-code-block
+import CodeLinkComparison from "./_common/code-link-comparison.mdx"
+
+<CodeLinkComparison />
+```
+
+## Showing the verification flow after settings, registration or login
+
+To show the verification flow directly after the user has registered, see the
+[registration documentation](../../../identities/sign-in/actions.mdx#show-verification-after-successful-registration).
+
+For settings, see the [settings documentation](./user-settings.mdx#show-verification-after-updating-a-verifiable-address).
+
+And for login, see the
+[login customization documentation](../../../identities/sign-in/actions.mdx#show-verification-after-login-if-address-is-not-verified-yet).
+
+## Code examples
+
+The user interface for account verification is a page in your solution that renders the actual form elements for the user.
+
+In contrast to other identity systems, Ory Identities (Ory Kratos) doesn't render this HTML directly. Instead, you need to
+implement the HTML code in your solution, which gives you complete flexibility and customizability in your user interface flows
+and designs. This part of your application then directly interfaces with Ory Identities through the API.
+
+The API responds with a JSON document describing the form elements to render and actions the form should take upon submission,
+cancellation, etc. The following shows examples for a few different languages and frameworks.
+
+<RenderFlow flow="verification" />

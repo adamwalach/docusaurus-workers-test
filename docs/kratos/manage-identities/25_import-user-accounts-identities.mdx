@@ -1,0 +1,888 @@
+---
+id: import-user-accounts-identities
+title: Learn how to import user accounts from other systems to Ory
+sidebar_label: Import identities
+toc_max_heading_level: 3
+---
+
+# Import identities
+
+Ory allows you to import identities from any other system. To import identities, you use the same endpoint as for
+[creating identities](./20_create-users-identities.mdx). The main difference between creating and importing identities is that
+when you import identities, you must provide the `credentials` field.
+
+## Importing verified addresses
+
+Use the `verifiable_addresses` field to import a verified address like an email address.
+
+:::danger
+
+You must ensure that address verification is enabled and that the `verifiable_address` is present in the identity's traits. If the
+identity traits do not have the address set as the "verified address" type, the imported values will be deleted on the next
+identity update.
+
+:::
+
+This is a sample payload for importing an identity with a verified address:
+
+```json {4,8-11}
+{
+  "schema_id": "preset://email",
+  "traits": {
+    "email": "docs-verify@example.org"
+  },
+  "verifiable_addresses": [
+    {
+      "value": "docs-verify@example.org",
+      "verified": true,
+      "via": "email",
+      "status": "completed"
+    }
+  ]
+}
+```
+
+Test the above example with a cURL command:
+
+````mdx-code-block
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+<Tabs
+  defaultValue="cloud"
+  values={[
+    {label: 'Ory Network', value: 'cloud'},
+  ]}>
+  <TabItem value="cloud">
+
+```shell
+curl --request POST -sL \
+  --header "Authorization: Bearer ory_pat_xRKLsFEOUFQFVBjd6o3FQDifaLYhabGd" \
+  --header "Content-Type: application/json" \
+  --data '{
+  "schema_id": "preset://email",
+  "traits": {
+    "email": "docs-verify@example.org"
+  },
+  "verifiable_addresses": [
+    {
+      "value": "docs-verify@example.org",
+      "verified": true,
+      "via": "email",
+      "status": "completed"
+    }
+  ]
+}' https://$PROJECT_SLUG.projects.oryapis.com/admin/identities
+```
+
+</TabItem>
+</Tabs>
+````
+
+The API response contains the created identity:
+
+```json {13-15}
+{
+  "id": "880052ae-d32c-4b56-b82d-0dc711080910",
+  "schema_id": "preset://email",
+  "schema_url": "https://$PROJECT_SLUG.projects.oryapis.com/schemas/cHJlc2V0Oi8vZW1haWw",
+  "state": "active",
+  "state_changed_at": "2022-02-24T15:33:17.845589803Z",
+  "traits": {
+    "email": "docs-verify@example.org"
+  },
+  "verifiable_addresses": [
+    {
+      "id": "c3f67b59-ab58-410b-971a-06b80f38468a",
+      "value": "docs-verify@example.org",
+      "verified": true,
+      "via": "email",
+      "status": "completed",
+      "created_at": "2022-02-24T15:33:17.848941Z",
+      "updated_at": "2022-02-24T15:33:17.848941Z"
+    }
+  ],
+  "recovery_addresses": [
+    {
+      "id": "819b53bf-79e3-452e-8a9b-0323ec9d193c",
+      "value": "docs-verify@example.org",
+      "via": "email",
+      "created_at": "2022-02-24T15:33:17.849758Z",
+      "updated_at": "2022-02-24T15:33:17.849758Z"
+    }
+  ],
+  "created_at": "2022-02-24T15:33:17.848475Z",
+  "updated_at": "2022-02-24T15:33:17.848475Z"
+}
+```
+
+## Importing recovery addresses
+
+It is possible to import a list of `recovery_addresses` - similar to `verifiable_addresses`. It is better to let the identity
+schema handle setting the appropriate fields since there is no status to set for this address type.
+
+We don't recommend setting these fields as they will be overwritten by other self-service flows. For more information on account
+recovery read the [account recovery documentation](../self-service/flows/account-recovery-password-reset.mdx).
+
+## Importing credentials
+
+Ory supports importing credentials for identities including passwords and social sign-in connections.
+
+### Clear text password
+
+To import a clear text password, provide the password in the JSON payload.
+
+:::danger
+
+Password imports don't use any password validation. Users have to update their password according to the policy themselves using
+self-service flows.
+
+:::
+
+```json {6-12}
+{
+  "schema_id": "preset://email",
+  "traits": {
+    "email": "docs-cleartext@example.org"
+  },
+  "credentials": {
+    "password": {
+      "config": {
+        "password": "the-password"
+      }
+    }
+  }
+}
+```
+
+The password `the-password` will then be hashed according to the configured password hashing algorithm and stored in the database.
+The identity will be able to sign in using `docs-cleartext@example.org` and `the-password` as credentials.
+
+When importing clear text passwords, the process may be slower than expected because each password must be hashed during the
+import process. If you are batch importing more than 20 clear text passwords, please hash the passwords before importing them to
+avoid timeouts.
+
+### Hashed passwords
+
+To import a hashed password, provide the hashed password in the JSON payload.
+
+```json {6-12}
+{
+  "schema_id": "preset://email",
+  "traits": {
+    "email": "docs-hash@example.org"
+  },
+  "credentials": {
+    "password": {
+      "config": {
+        "hashed_password": "$2a$10$ZsCsoVQ3xfBG/K2z2XpBf.tm90GZmtOqtqWcB5.pYd5Eq8y7RlDyq"
+      }
+    }
+  }
+}
+```
+
+The value of the hashed password is different depending on the algorithm used. The following algorithms are supported:
+
+````mdx-code-block
+<Tabs>
+<TabItem value="bcrypt" label="BCrypt">
+
+Ory Identities can hash passwords by BCrypt and can compare stored BCrypt hash and migrate if configured hasher
+(`hashers.algorithm`) isn't BCrypt.
+
+BCrypt format is described [here](https://en.wikipedia.org/wiki/Bcrypt#Description).
+
+</TabItem>
+<TabItem value="argon2" label="Argon2">
+
+Ory Identities can hash passwords by Argon2 and can compare stored Argon2 hash and migrate if configured hasher
+(`hashers.algorithm`) isn't Argon2.
+
+#### Format
+
+`$argon2id$v=<version>$m=<memory>,t=<iterations>,p=<parallelism>$<hash>`
+
+#### Parameters
+
+- `version`(`number`): The current version.
+- `memory`(`number`): Amount of memory to use.
+- `iterations`(`number`): Number of iterations to perform.
+- `parallelism`(`number`): Degree of parallelism.
+- `hash`(`string`): The computed derived key by the Argon2 algorithm encoded to Base64.
+
+#### Example
+
+```
+$argon2id$v=19$m=32,t=2,p=4$cm94YnRVOW5jZzFzcVE4bQ$MNzk5BtR2vUhrp6qQEjRNw
+```
+
+</TabItem>
+<TabItem value="md5" label="MD5">
+
+Ory Identities doesn't hash passwords by MD5 but can compare stored MD5 hashes and migrate to configured hasher
+(`hashers.algorithm`). You can configure MD5 hashes to use a plain format (for hashes without salt) or a salted format (for hashes
+with salt).
+
+#### Plain format (hashes without salt)
+
+```
+$md5$<hash>
+```
+
+#### Parameters
+
+- `hash`(`string`): The computed hash by the MD5 algorithm encoded to Base64.
+
+#### Example
+
+```
+$md5$CY9rzUYh03PK3k6DJie09g==
+```
+
+#### Salted format (hashes with salt)
+
+This format allows administrators to import passwords that use salting to calculate the MD5 hash. Ory doesn't prepend or append
+the salt to the user's password. To determine the way the system performs salting, use the `salting-format` parameter.
+
+```
+$md5$pf=<salting-format>$<salt>$<hash>
+```
+
+Read [this section](#salting-format-parameter) to learn more about configuring the `salting-format` parameter.
+
+#### Parameters
+
+- `salting-format`(`string`): Format string specifies how salting should be done. Must be encoded to Base64.
+- `salt`(`string`): A sequence of bits, known as a cryptographic salt encoded to Base64.
+- `hash`(`string`): The computed hash by the MD5 algorithm encoded to Base64.
+
+#### Example
+
+```
+$md5$pf=e1NBTFR9e1BBU1NXT1JEfQ==$MTIz$q+RdKCgc+ipCAcm5ChQwlQ==
+```
+
+##### Salting format parameter
+
+Below are formatting specifiers that can be used in the `salting-format`.
+
+- `{SALT}`: Salt value from the previous section.
+- `{PASSWORD}`: User's password in clear text.
+
+##### Example
+
+Assuming that User's password is `ory123` and salt is `c2FsdDEyMw==`(_in clear text: salt123_) and the clear text form of
+`salting-format` parameter as follows:
+
+```
+{SALT}--{PASSWORD}
+```
+
+In that case result of the `salting` process would be:
+
+```
+salt123--ory123
+```
+
+</TabItem>
+
+<TabItem value="sha" label="SHA">
+
+Ory Identities doesn't hash passwords by SHA but can compare stored SHA hashes and migrate to configured hasher
+(`hashers.algorithm`). You can configure SHA hashes to use a plain format (for hashes without salt) or a salted format (for hashes
+with salt).
+
+#### Salted format (hashes with salt)
+
+This format allows administrators to import passwords that use salting to calculate the SHA hash. Ory doesn't prepend or append
+the salt to the user's password. To determine the way the system performs salting, use the `salting-format` parameter.
+
+```
+$sha1$pf=<salting-format>$<salt>$<hash>
+$sha256$pf=<salting-format>$<salt>$<hash>
+$sha512$pf=<salting-format>$<salt>$<hash>
+```
+
+Read [this section](#salting-format-parameter) to learn more about configuring the `salting-format` parameter.
+
+#### Parameters
+
+- `salting-format`(`string`): Format string specifies how salting should be done. Must be encoded to Base64.
+- `salt`(`string`): A sequence of bits, known as a cryptographic salt encoded to Base64.
+- `hash`(`string`): The computed hash by the SHA algorithm encoded to Base64.
+
+#### Example
+
+```
+$sha1$pf=e1NBTFR9e1BBU1NXT1JEfQ==$MTIz$q+RdKCgc+ipCAcm5ChQwlQ==
+```
+
+##### Salting format parameter
+
+Below are formatting specifiers that can be used in the `salting-format`.
+
+- `{SALT}`: Salt value from the previous section.
+- `{PASSWORD}`: User's password in clear text.
+
+##### Example
+
+Assuming that User's password is `ory123` and salt is `c2FsdDEyMw==`(_in clear text: salt123_) and the clear text form of
+`salting-format` parameter as follows:
+
+```
+{SALT}--{PASSWORD}
+```
+
+In that case result of the `salting` process would be:
+
+```
+salt123--ory123
+```
+
+</TabItem>
+<TabItem value="ssha" label="SSHA, SSHA256, SSHA512">
+
+Ory Identities doesn't hash passwords by salted SHA but can compare stored salted SHA hashes and migrate to configured hasher
+(`hashers.algorithm`). SSHA does not take in any parameters for verification.
+
+#### Examples
+
+The format consists of 20 bytes of hash followed by the salt. The result is then encoded with base64 following RFC 4648.
+
+```
+{SSHA}JFZFs0oHzxbMwkSJmYVeI8MnTDy/276a
+```
+
+
+```
+{SSHA256}czO44OTV17PcF1cRxWrLZLy9xHd7CWyVYplr1rOhuMlx/7IK
+```
+
+For SSHA256 the format consists of 32 bytes of hash followed by the salt. The result is then encoded with base64 following RFC 4648.
+
+```
+{SSHA512}xPUl/px+1cG55rUH4rzcwxdOIPSB2TingLpiJJumN2xyDWN4Ix1WQG3ihnvHaWUE8MYNkvMi5rf0C9NYixHsE6Yh59M=
+```
+
+For SSHA512 the format consists of 64 bytes of hash followed by the salt. The result is then encoded with base64 following RFC 4648.
+
+</TabItem>
+<TabItem value="pbkdf2" label="PBKDF2">
+
+Ory Identities doesn't hash passwords by PBKDF2 but can compare stored PBKDF2 hash and migrate to configured hasher
+(`hashers.algorithm`).
+
+#### Format
+
+```
+$pbkdf2-<algorithm>$i=<iteration>,l=<length>$<salt>$<hash>
+```
+
+#### Parameters
+
+- `digest`(`string`): The HMAC digest algorithm applied to derive a key of the input password.
+- `iterations`(`number`): The number of iterations desired. The higher the number of iterations, the more secure the derived key
+  will be, but will take a longer amount of time to complete.
+- `length`(`number`): Length in octets of derived key.
+- `salt`(`string`): A sequence of bits, known as a cryptographic salt encoded to Base64.
+- `hash`(`string`): The computed derived key by the PBKDF2 algorithm encoded to Base64.
+
+#### Example
+
+```
+$pbkdf2-sha256$i=100000,l=32$1jP+5Zxpxgtee/iPxGgOz0RfE9/KJuDElP1ley4VxXc$QJxzfvdbHYBpydCbHoFg3GJEqMFULwskiuqiJctoYpI
+```
+
+</TabItem>
+<TabItem value="scrypt" label="SCrypt">
+
+Ory Identities doesn't hash passwords by SCrypt but can compare stored SCrypt hashes and migrate to configured hasher
+(`hashers.algorithm`).
+
+#### Format
+
+```
+$scrypt$ln=<cost>,r=<block>,p=<parrelization>$<salt>$<hash>
+```
+
+#### Parameters
+
+- `cost`(`number`): CPU/memory cost (has to be power of 2 and >1)
+- `block`(`number`): block size parameter (must satisfy r \* p < 2³⁰)
+- `parallelization`(`number`): parallelization parameter (must satisfy r \* p < 2³⁰)
+- `salt`(`string`): A sequence of bits, known as a cryptographic salt encoded to Base64.
+- `hash`(`string`): The computed derived key by the SCrypt algorithm encoded to Base64.
+
+#### Example
+
+```
+$scrypt$ln=16384,r=8,p=1$ZtQva9xCHzlSELH/mA7Kj5KjH2tCrkbwYzdxknkL0QQ=$pnTcXKaWVT+FwFDdk3vO1K0J7ZgOxdSU1tCJNYmn8zI=
+```
+
+</TabItem>
+<TabItem value="firebase-scrypt" label="Firebase SCrypt">
+
+Ory Identities doesn't hash passwords by Firebase SCrypt but can compare stored Firebase SCrypt hashes and migrate to configured
+hasher (`hashers.algorithm`).
+
+#### Format
+
+```
+$firescrypt$ln=<mem_cost>,r=<rounds>,p=<parallelization>$<salt>$<hash>$<salt_separator>$<signer_key>
+```
+
+#### Parameters
+
+- `mem_cost`(`number`): CPU/memory cost as given by
+- `rounds`(`number`): rounds firebase hash config parameter (must satisfy r \* p < 2³⁰)
+- `parallelization`(`number`): parallelization parameter, default is `1` unless Google says otherwise (must satisfy r \* p < 2³⁰)
+- `salt`(`string`): A sequence of bits, known as a cryptographic salt encoded to Base64.
+- `hash`(`string`): The computed derived key by the SCrypt algorithm encoded to Base64.
+- `salt_separator`(`string`): Firebase hash config parameter encoded to Base64.
+- `signer_key`(`string`): Firebase hash config parameter encoded to Base64.
+
+#### Example
+
+```
+$firescrypt$ln=14,r=8,p=1$sPtDhWcd1MfdAw==$xbSou7FOl6mChCyzpCPIQ7tku7nsQMTFtyOZSXXd7tjBa4NtimOx7v42Gv2SfzPQu1oxM2/k4SsbOu73wlKe1A==$Bw==$YE0dO4bwD4JnJafh6lZZfkp1MtKzuKAXQcDCJNJNyeCHairWHKENOkbh3dzwaCdizzOspwr/FITUVlnOAwPKyw==
+```
+
+Documentation for extracting your users can be found [here](https://firebase.google.com/docs/cli/auth).
+
+</TabItem>
+<TabItem value="crypt" label="crypt(3)">
+
+Ory Identities doesn't hash passwords by crypt(3) but can compare stored crypt(3) hashes and migrate to configured hasher
+(`hashers.algorithm`).
+
+#### Format
+
+The format supported are outlined in `crypt(5)` and includes support for md5crypt, sha256crypt, sha512crypt.
+
+```
+$md5-crypt$<salt>$<hash>
+```
+
+```
+$sha256-crypt$rounds=<rounds><salt>$<hash>
+```
+
+```
+$sha512-crypt$rounds=<rounds><salt>$<hash>
+```
+
+#### Parameters
+
+- `salt`(`string`): A sequence of bits, known as a cryptographic salt, encoded in radix-64.
+- `hash`(`string`): The computed derived key by the crypt(3) algorithm encoded in radix-64.
+- `rounds`(`number`): The number of rounds to use for the crypt(3) algorithm.
+    Only used in sha256crypt and sha512crypt, in some implementations, the number of rounds is optional, this is not supported by Ory Identities.
+
+radix-64 is a modified Base64 encoding with the following characters: `./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`
+
+#### Example
+
+```
+$md5-crypt$b44ZDsnw$9D9z/TCVXPWsTkz9qnSBS/
+$sha256-crypt$rounds=535000$1AhJGf0tkCty1jNS$Pu6o3i5PsT6F4AG2F99AsK/rXyYymXII3OtO.paxQp9
+$sha512-crypt$rounds=656000$L6GsrFY85uzwktkh$gD2vwQpyaBn.FIBgjp2TCQHCQ3bMft49oIzr.nssNKo7ogR5zWnyVkTg4yv1gvzTNZ0oEISHEOOMxNIi3nS.h1
+```
+
+</TabItem>
+<TabItem value="hmac" label="HMAC">
+
+Ory Identities doesn't hash passwords by HMAC but can compare stored HMAC hashes and migrate to configured hasher
+(`hashers.algorithm`).
+
+#### Format
+
+```
+$hmac-<hash_function>$<hash>$<key>
+```
+
+#### Parameters
+
+- `hash_function`(`string`): The hash function used to generate the hashed password. Supports `md4`, `md5`, `sha1`, `sha224`, `sha256`, `sha384` and `sha512` functions.
+- `hash`(`string`): The computed hash, encoded in Base64.
+- `key`(`string`): The key used to compute the hash, encoded in Base64
+
+#### Example
+
+```
+$hmac-md5$ZmU4Njk3Zjc0MmQwODA0MDVkMTI3MGU2MTYzMzE2Zjk=$MTIzNDU=
+$hmac-sha256$ZTAzMWJhMWMyOTM4YjFkMjgzZjkxOWExZGY5YWM2NmMxOTJhN2RkNzQ0MzJkNWZkNGFkYTI5OTk0MWJhMTA5Zg==$MTIzNDU=
+$hmac-sha512$OTFmODY0ZTI1NmU0ZjVhYjhiMDViZGFmNGVmNGZmMGVlNTY4ODYwNWJhYTk4MTk2OTgyMzc3NzI1YTc4MzcxMTMzNzZmY2YxYTk5MGMxM2RiZDk2MGFmMmQ1YzRmODdlMGMwYTNkYjcyNjY0NjM4NGE4YzQ2MjNhZDZkN2UxZTE=$MTIzNDU=
+```
+
+</TabItem>
+</Tabs>
+````
+
+### Password migration using a web hook
+
+If you want to import users, but do not have access to the hashed password, or the hashed password is in a format that Ory
+Identities does not support, you can use a web hook to migrate the password.
+
+The web hook will be called when the user logs in, and will receive the user's identifier and password. If the web hook returns
+successfully, the user will be logged in and the hashed password will be stored.
+
+The following steps are necessary to set up password migration using a web hook:
+
+1.  Import an identity with an empty password hash and `use_password_migration_hook` set to `true`
+
+    [Bulk-import](#bulk-import-identities-from-other-providers) all your users with an empty password hash and
+    `use_password_migration_hook` set:
+
+    ```json {9-10}
+    {
+      "schema_id": "preset://email",
+      "traits": {
+        "email": "pw-migration@example.org"
+      },
+      "credentials": {
+        "password": {
+          "config": {
+            "hashed_password": "",
+            "use_password_migration_hook": true
+          }
+        }
+      }
+    }
+    ```
+
+2.  Configure a password migration web hook
+
+    Add the web hook URL to the configuration. See the
+    [web hook configuration](../../guides/integrate-with-ory-cloud-through-webhooks.mdx#request-authentication) for authentication
+    options.
+
+    ```yaml
+    selfservice:
+      methods:
+        password:
+          config:
+            migrate_hook:
+              enabled: true
+              config:
+                url: https://example.org/migrate-password
+                body: base64://ENCODED_JSONNET # see the general webhook documentation for more information
+                auth:
+                  type: api_key
+                  config:
+                    name: Authorization
+                    value: { API Key value }
+                    in: header # alternatively "cookie"
+    ```
+
+    The `body` configuration field is a JSONNet snippet that will be used to map the request body to the web hook. The available
+    context is the
+    [same as for other webhooks](../../guides/integrate-with-ory-cloud-through-webhooks.mdx#customizing-request-body-with-jsonnet),
+    plus these fields:
+
+    ```json5
+    {
+      identifier: "user@example.com",
+      password: "123456",
+      // also available: "identity", "flow", "request_url", "request_headers", "request_cookies", "request_method"
+    }
+    ```
+
+3.  Implement the password migration web hook
+
+    If a user logs in and the identifier points to an identity that has `use_password_migration_hook` set to `true`, Ory
+    Identities will call the configured web hook URL. The body of the request will be mapped using the provided JSONNet snippet,
+    or default to this payload when no `body` snippet is configured:
+
+    ```json
+    {
+      "identifier": "pw-migration@example.org",
+      "password": "the-password"
+    }
+    ```
+
+    The web hook can then check the identifier and password against the legacy system. If the password matches, the web hook must
+    respond with a `200 OK` status code and the following payload:
+
+    ```json
+    {
+      "status": "password_match"
+    }
+    ```
+
+    After a successful response, the identity will be updated with the hashed password and the user will be logged in. The
+    password migration hook will not be called again for this identity.
+
+    If the password does not match, the webhook should return `403 Forbidden`, to indicate to the user that the password did not
+    match.
+
+    Any other response will be treated as an unexpected error, and the user will not be logged in.
+
+### Social sign-in connections
+
+When importing social sign-in connections, the `provider` field is the social sign-in provider ID you set in your social sign-in
+configuration. The `subject` ID must be the ID of the user on the given platform. Usually, this is the `sub` claim of the OpenID
+Connect ID Token provider such as Google.
+
+```json {7-20}
+{
+  "schema_id": "preset://email",
+  "traits": {
+    "email": "docs-oidc@example.org"
+  },
+  "credentials": {
+    "oidc": {
+      "config": {
+        "providers": [
+          {
+            "provider": "github",
+            "subject": "12345"
+          },
+          {
+            "provider": "google",
+            "subject": "12345"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+#### Importing social sign-in connections with email
+
+If the previous system didn't record the immutable user/subject ID but only the connection's email address, Ory provides a way to
+automatically link the email address with the social sign-in provider. However, the email address must be available for this
+process.
+
+For more details, refer to the
+[automatic account linking documentation](../social-signin/95_account-linking.mdx#automatic-account-linking).
+
+### SAML connections
+
+When importing SAML connections, the `provider` field is the SAML provider ID you set in your SAML configuration. The `subject` ID
+must be the ID of the user on the given platform. The subject should not be an email, but a fixed user ID that never changes.
+
+```json {7-20}
+{
+  "schema_id": "preset://email",
+  "traits": {
+    "email": "docs-oidc@example.org"
+  },
+  "credentials": {
+    "saml": {
+      "config": {
+        "providers": [
+          {
+            "provider": "okta",
+            "subject": "12345"
+          },
+          {
+            "provider": "one-login",
+            "subject": "12345"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+## Organization-specific SAML and OIDC connections
+
+When importing SAML or OIDC connections that are only available for certain [organizations](../organizations/organizations.mdx)
+(for example `email@companyname.com`), you can use the `organization` field to specify the organization that the user belongs to.
+
+```json
+{
+  "schema_id": "preset://email",
+  "traits": {
+    "email": "docs-oidc@example.org"
+  },
+  // highlight-start
+  "organization": "9ed50339-d6b9-47ef-9610-194773f3bfbf",
+  // highlight-end
+  "credentials": {
+    "saml": {
+      "config": {
+        "providers": [
+          {
+            "provider": "okta",
+            "subject": "12345",
+            // highlight-start
+            "organization": "9ed50339-d6b9-47ef-9610-194773f3bfbf"
+            // highlight-end
+          }
+        ]
+      }
+    },
+    "oidc": {
+      "config": {
+        "providers": [
+          {
+            "provider": "github",
+            "subject": "12345",
+            // highlight-start
+            "organization": "9ed50339-d6b9-47ef-9610-194773f3bfbf"
+            // highlight-end
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+## Bulk import identities from other providers
+
+To import multiple identities into Ory Identities, use the
+[Identity Import API](../reference/api#tag/identity/operation/batchPatchIdentities).
+
+#### Limits
+
+The Identity Import API enforces limits which are documented in the
+[API reference](../reference/api#tag/identity/operation/batchPatchIdentities).
+
+- Avoid importing large batches with plaintext passwords, as they can cause timeouts.
+- If you need to import more identities, split the import into multiple requests.
+
+#### Request format
+
+The endpoint accepts a JSON array of identities, each of which must have a `create` property that holds the identity that should
+be created. Optionally, you can specify a `patch_id` property which must be a UUID to be returned in the response. This can be
+used to correlate the response with the patch.
+
+The following example shows how to import two identities. It will create two identities with the email addresses `foo@example.com`
+and `bar@example.com` and the passwords `foopassword` and `barpassword` respectively.
+
+```bash
+curl --location --request PATCH 'https://${YOUR_PROJECT_SLUG}.projects.oryapis.com/admin/identities' \
+--header 'Authorization: Bearer ${YOUR_ORY_ACCESS_TOKEN}' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "identities": [
+        {
+# highlight-next-line
+            "patch_id": "6086b0a8-d851-5431-91b4-b6e5e39dc88b",
+            "create": {
+                "credentials": {
+                    "password": {
+                        "config": {
+                            "password": "foopassword"
+                        }
+                    }
+                },
+                "state": "active",
+                "traits": {
+                    "email": "foo@example.com"
+                },
+                "schema_id": "preset://email"
+            }
+        },
+        {
+# highlight-next-line
+            "patch_id": "d554dc00-49ce-5381-9bdc-79637dec85a2",
+            "create": {
+                "credentials": {
+                    "password": {
+                        "config": {
+                            "password": "barpassword"
+                        }
+                    }
+                },
+                "state": "active",
+                "traits": {
+                    "email": "bar@example.com"
+                },
+                "schema_id": "preset://email"
+            }
+        }
+    ]
+}'
+```
+
+#### Successful response
+
+If at least one identity is successfully imported, the API responds with HTTP 200 OK. The response contains an array of results
+per identity. Each entry includes the corresponding patch_id to correlate the response with the request.
+
+```json
+{
+  "identities": [
+    {
+      "action": "create",
+      // highlight-next-line
+      "patch_id": "6086b0a8-d851-5431-91b4-b6e5e39dc88b",
+      "identity": "55f93ea4-09ff-4273-8b88-082cc70d6d44"
+    },
+    {
+      "action": "create",
+      // highlight-next-line
+      "patch_id": "d554dc00-49ce-5381-9bdc-79637dec85a2",
+      "identity": "f70c9b29-4790-4330-90dc-920db16a4b85"
+    }
+  ]
+}
+```
+
+#### Errors during bulk import
+
+Failure to import an identity will not do not affect the entire bulk import. In the response, `"action": "error"` indicates that
+the identity with the corresponding `patch_id` could not be imported. The `patch_id` can be set on each identity passed to
+`PATCH /admin/identities`. The `error` object contains more details about why the import failed.
+
+Example with both successful and failed imports:
+
+```json
+{
+  "identities": [
+    {
+      "action": "create",
+      "identity": "0d0ed560-43ce-42a9-bd40-aafe921c3af1",
+      "patch_id": "6086b0a8-d851-5431-91b4-b6e5e39dc88b"
+    },
+    {
+      // highlight-start
+      "action": "error",
+      "patch_id": "d554dc00-49ce-5381-9bdc-79637dec85a2",
+      "error": {
+        "code": 400,
+        "status": "Bad Request",
+        "reason": "The request was malformed or contained invalid parameters",
+        "message": "The request was malformed or contained invalid parameters"
+      }
+      // highlight-end
+    },
+    {
+      // highlight-start
+      "action": "error",
+      "patch_id": "1634f1e9-8419-5a54-8191-2260c8aaea31",
+      "error": {
+        "code": 409,
+        "status": "Conflict",
+        "reason": "This identity conflicts with another identity that already exists.",
+        "message": "The resource could not be created due to a conflict"
+      }
+      // highlight-end
+    },
+    {
+      "action": "create",
+      "identity": "b8651770-be8d-460b-b86f-679c4ba50264",
+      "patch_id": "eade6651-9311-5624-8afd-e4a3e05e0c4a"
+    }
+  ]
+}
+```
+
+If no identity is imported, the response will return one of the following errors:
+
+- `400 Bad Request` – The request payload is invalid or improperly formatted.
+- `409 Conflict` – Duplicate identities or conflicting data detected.
+
+#### Troubleshooting 504 Gateway Timeout
+
+- Reduce the batch size
+- Avoid duplicate identities
+- Pre-hash passwords using BCrypt
+
+If issues persist, contact [support](https://console.ory.sh/support).
